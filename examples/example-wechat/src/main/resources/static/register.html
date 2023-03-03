@@ -1,0 +1,134 @@
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
+
+  <script src="http://cdn.coderead.cn/vue@2.7.14/dist/vue.js"></script>
+  <script src="http://cdn.coderead.cn/vuetify@2.6.14/dist/vuetify.js"></script>
+  <script src="http://cdn.coderead.cn/Luban.js"></script>
+
+  <link href="http://cdn.coderead.cn/vuetify@2.6.14/dist/vuetify.css" rel="stylesheet" />
+  <link href="http://cdn.coderead.cn/mdi@7.1.96/font/css/materialdesignicons.css" rel="stylesheet" />
+</head>
+
+<body>
+  <div id="app">
+    <v-app>
+      <v-main class="d-flex align-center">
+        <v-card class="mx-auto" width="500">
+          <v-card-title>欢迎注册畅聊</v-card-title>
+
+          <v-list-item class="d-flex justify-center">
+            <v-badge bottom icon="mdi-dice-3" color="deep-purple accent-4" offset-x="35" offset-y="35">
+              <v-list-item-avatar style="cursor: pointer" size="80" color="grey" @click="doRandomHead">
+                <v-img :src="user.head">
+              </v-list-item-avatar>
+            </v-badge>
+
+          </v-list-item>
+          <v-card-text>
+            <v-text-field v-model="user.name" label="用户名" :counter="20" :rules="rules.name" label="Name"
+              required></v-text-field>
+            <v-text-field v-model="user.password" :append-icon="showPwd ? 'mdi-eye' : 'mdi-eye-off'" :rules="rules.pwd"
+              :type="showPwd ? 'text' : 'password'" name="input-10-1" label="设置密码" hint="至少输入6位" counter
+              @click:append="showPwd = !showPwd">
+            </v-text-field>
+
+            性别：<v-btn-toggle v-model="user.sex">
+              <v-btn value="男">
+                <v-icon color="primary">mdi-account-tie</v-icon>
+              </v-btn>
+              <v-btn value="女">
+                <v-icon color="pink">mdi-account-tie-woman</v-icon>
+              </v-btn>
+            </v-btn-toggle>
+
+          </v-card-text>
+          <!-- <v-card-subtitle>其它信息</v-card-subtitle> -->
+          <v-card-text>
+            <v-text-field v-model="user.signDesc" label="个性签名" :counter="50" required></v-text-field>
+            <v-autocomplete v-model="user.labels" :items="labels" chips small-chips label="标签" multiple>
+            </v-autocomplete>
+            <v-alert v-if="errorMsg" dense outlined type="error">
+              {{errorMsg}}
+            </v-alert>
+          </v-card-text>
+          <v-card-actions>
+            <v-spacer></v-spacer>
+            <v-btn :disabled="!valid" color="success" class="px-10 ma-0" @click="doRegister">
+              提交
+            </v-btn>
+            <v-spacer></v-spacer>
+          </v-card-actions>
+        </v-card>
+      </v-main>
+    </v-app>
+  </div>
+</body>
+<script>
+  new Vue({
+    el: "#app",
+    vuetify: new Vuetify(),
+    data: () => {
+      return {
+        showPwd: false,
+        randomHead: 0,
+        errorMsg:null,
+        user: {
+          name: "",
+          password: "",
+          labels: [],
+          signDesc: "",
+          head: "",
+          sex: "男",
+        },
+        valid: true,
+        name: '',
+        rules: {
+          name: [
+            v => !!v || '必须填写用户名',
+            v => (v && v.length >= 2) || '至少输入2个字符',
+          ],
+          pwd: [
+            v => !!v || '必须填写密码',
+            v => (v && v.length >= 6) || '密码不能少于6个字符',
+            v => !v.match(/[@#$%^&*()_+~！^@#￥%……&*\[\]【】（）《》？：“{}|、？。，]+/) || '不能包含特殊字符'
+          ]
+        },
+        select: null,
+        labels: [
+          '侠客',
+          '浪漫',
+          '妈宝',
+          '风一样的男子',
+        ],
+        checkbox: false,
+      }
+    },
+    methods: {
+      async doRegister() {
+        let param = { newUser: this.user };
+        try {
+          let newUser = await Luban.invoke("org.wechat.service.UserService", "register", param);
+          console.log("注册成功：跳转到主页:");
+          window.location.href = "/index.html";
+        } catch (e) {
+          this.errorMsg=e.message;
+        }
+      },
+      doRandomHead() {
+        this.randomHead = Math.floor(Math.random() * 99);
+        this.user.head="http://cdn.coderead.cn/heads/"+this.randomHead+".png";
+      },
+    },
+    mounted(){
+      this.doRandomHead();
+    }
+  });
+</script>
+<style>
+
+</style>
+
+</html>
