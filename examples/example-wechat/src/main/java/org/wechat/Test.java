@@ -13,11 +13,7 @@ import java.nio.file.Files;
  */
 public class Test {
     public static void main(String[] args) throws IOException {
-        File root = new File("/Users/tommy/temp/Luban-js/public/heads/");
-        File[] files = root.listFiles();
-        for (int i = 0; i < files.length; i++) {
-            if (files[i].getName().endsWith("png"))
-                Files.move(files[i].toPath(), new File(root, i + ".png").toPath());
-        }
+//        System.out.println(com.sun.tools.javac.tree.JCTree.class.getName());
+//        System.out.println(com.sun.tools.javac.tree.JCTree.class.getName());
     }
 }

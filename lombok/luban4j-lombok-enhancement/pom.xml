@@ -6,7 +6,7 @@
     <version>1.0-SNAPSHOT</version>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>luban4j-lombok-enhancement</artifactId>
-    <properties>
+   <!-- <properties>
         <JAVA_HOME>/Library/Java/JavaVirtualMachines/jdk1.8.0_212.jdk/Contents/Home</JAVA_HOME>
     </properties>
     <dependencies>
@@ -17,7 +17,7 @@
             <scope>system</scope>
             <systemPath>${JAVA_HOME}/lib/tools.jar</systemPath>
         </dependency>
-    </dependencies>
+    </dependencies>-->
     <build>
         <plugins>
             <plugin>
@@ -31,7 +31,9 @@
                     <compilerArgs>
                         <arg>-parameters</arg>
                         <arg>-proc:none</arg>
+                        <arg>-XDignore.symbol.file</arg>
                     </compilerArgs>
+                    <fork>true</fork>
                 </configuration>
             </plugin>
 
