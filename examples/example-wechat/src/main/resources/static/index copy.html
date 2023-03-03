@@ -1,0 +1,252 @@
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/element-ui/lib/theme-chalk/index.css"
+    />
+    <script src="https://unpkg.com/vue@2/dist/vue.js"></script>
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <script src="http://cdn.coderead.cn/Luban.js"></script>
+  </head>
+
+  <body>
+    <div id="app">
+      <el-container style="height: 100%">
+        <el-aside width="100px" class="navAside">
+          <el-avatar style="margin: 25px">
+            <span v-if="user"> {{user.name.charAt(0)}}</span>
+          </el-avatar>
+
+          <el-menu default-active="1" class="navMenu" collapse>
+            <el-menu-item index="1">
+              <i class="el-icon-chat-round"></i>
+            </el-menu-item>
+            <el-menu-item index="2">
+              <i class="el-icon-user-solid"></i>
+            </el-menu-item>
+
+            <el-submenu index="3" style="margin-top: 200px">
+              <template slot="title">
+                <i class="el-icon-setting" style="font-size: 28px"></i>
+                <span slot="title">设置</span>
+              </template>
+
+              <el-menu-item index="3-1">快捷键</el-menu-item>
+              <el-menu-item index="3-2"
+                ><i class="el-icon-edit-outline"></i>修改密码</el-menu-item
+              >
+              <el-menu-item index="3-3" @click="logout">
+                <i class="el-icon-right" ></i>退出</el-menu-item
+              >
+            </el-submenu>
+          </el-menu>
+        </el-aside>
+        <el-aside class="navList" width="200px">
+          <div style="margin: 10px">
+            <el-input
+              size="small"
+              placeholder="搜索"
+              prefix-icon="el-icon-search"
+            >
+            </el-input>
+          </div>
+          <div class="message list">
+            <el-row class="item">
+              <el-avatar class="head">明</el-avatar>
+              <span class="title">
+                小明
+                <span class="time"> 2023/02/12</span>
+              </span>
+              <span class="subtitle"> hello 好久不见</span>
+            </el-row>
+
+            <el-row class="item">
+              <el-avatar class="head">明</el-avatar>
+              <span class="title">
+                小花
+                <span class="time"> 2023/02/12</span>
+              </span>
+              <span class="subtitle"> 睡了没？</span>
+            </el-row>
+          </div>
+        </el-aside>
+        <el-main class="main body">
+          <h3 style="margin: 10px">
+            曾朵朵
+            <i style="float: right" class="el-icon-more"></i>
+          </h3>
+          <el-divider class="main split"></el-divider>
+          <div class="chat list" style="margin-left: 10px">
+            <el-row class="item">
+              <el-avatar class="head" style="display: inline-block"
+                >朵</el-avatar
+              >
+              <span class="message"> hello</span>
+            </el-row>
+            <el-row class="item">
+              <el-avatar class="head" style="display: inline-block"
+                >朵</el-avatar
+              >
+              <span class="message"> 成功提示的文案</span>
+            </el-row>
+            <el-row class="me item">
+              <el-avatar class="head" style="display: inline-block"
+                >我</el-avatar
+              >
+
+              <span class="message">没会员 </span>
+            </el-row>
+            
+          </div>
+          <el-divider class="chat split"></el-divider>
+          <div class="chat toolbar">
+            <i class="el-icon-lollipop"></i>
+            <i class="el-icon-folder"></i>
+            <i class="el-icon-scissors"></i>
+            <i class="el-icon-chat-dot-round"></i>
+            <div style="float: right">
+              <i class="el-icon-phone"></i>
+              <i class="el-icon-video-camera"></i>
+            </div>
+          </div>
+          <div class="chat input" contenteditable="true"></div>
+        </el-main>
+      </el-container>
+    </div>
+  </body>
+  <script>
+    new Vue({
+      el: "#app",
+      methods: {},
+      data: {
+        visible: true,
+        name: "小强12",
+        user: null,
+      },
+      methods: {
+        async loadUser() {
+          let user = await Luban.invoke("org.wechat.service.UserService", "getUserInfo");
+          if (user) {
+            this.user = user;
+          } else {
+            window.location.href = "/login.html";
+          }
+        },
+        async logout() {
+          await Luban.invoke("org.wechat.service.UserService", "logout");
+          window.location.href = "/login.html";// 退回登录页
+        },
+      },
+      mounted() {
+        this.loadUser(); // 加载用户信息
+      },
+    });
+  </script>
+  <style>
+    #app {
+      margin: auto;
+      height: 500px;
+      width: 800px;
+      margin-top: 50px;
+      background-color: white;
+      border-radius: 4px;
+      border: 1px solid #dddfe5;
+    }
+
+    .button {
+    }
+
+    .navMenu,
+    .navAside {
+      background-color: #e5e5e5;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .navMenu .el-menu-item i {
+      font-size: 30px;
+    }
+    .navMenu .el-menu-item {
+      background-color: unset;
+    }
+    .navList {
+      background-color: #f7f7f7;
+    }
+    .message.list {
+      margin: 5px;
+    }
+    .message.list .item {
+      margin: 5px;
+      margin-top: 10px;
+    }
+    .message.list .item .head {
+      float: left;
+      margin: 3px;
+    }
+    .message.list .item .subtitle {
+      display: block;
+      color: grey;
+      font-size: 0.8rem;
+    }
+    .message.list > .item .time {
+      color: grey;
+      float: right;
+      font-size: 5px;
+    }
+    .main.body {
+      border-left: 1px solid #dddfe5;
+      background-color: #f3f3f3;
+      padding: 0;
+    }
+    .chat.list {
+      overflow-y: auto;
+      min-height: 230px;
+    }
+    .chat.list > .item {
+      margin-top: 20px;
+    }
+    .chat.list > .me.item > .head {
+      position: absolute;
+      right: 0px;
+    }
+    .chat.list > .me.item > .message {
+      position: absolute;
+      right: 50px;
+      background-color: #98ef6e;
+    }
+    .chat.list > .item > .message {
+      padding: 10px;
+      font-size: 0.9rem;
+      position: absolute;
+      margin-left: 10px;
+      background-color: white;
+    }
+    .chat.input {
+      height: 120px;
+      overflow-y: auto;
+      padding: 5px;
+
+      border: unset !important;
+    }
+    .chat.toolbar {
+      font-size: 25px;
+      color: grey;
+      margin-left: 10px;
+      margin-right: 10px;
+    }
+    .chat.toolbar i {
+      padding-left: 5px;
+    }
+    .chat.toolbar i:hover {
+      cursor: pointer;
+      color: #3f9eff;
+    }
+    .chat.split {
+      margin-bottom: 10px;
+    }
+    .main.split {
+      margin-top: 10px;
+      margin-bottom: 15px;
+    }
+  </style>
+</html>

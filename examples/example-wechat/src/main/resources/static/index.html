@@ -1,0 +1,400 @@
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
+
+  <script src="http://cdn.coderead.cn/vue@2.7.14/dist/vue.js"></script>
+  <script src="http://cdn.coderead.cn/vuetify@2.6.14/dist/vuetify.js"></script>
+  <script src="http://cdn.coderead.cn/Luban.js"></script>
+
+  <link href="http://cdn.coderead.cn/vuetify@2.6.14/dist/vuetify.css" rel="stylesheet" />
+  <link href="http://cdn.coderead.cn/mdi@7.1.96/font/css/materialdesignicons.css" rel="stylesheet" />
+</head>
+
+<body>
+  <div id="app">
+    <v-app>
+      <v-main class="d-flex align-center">
+        <v-sheet class="mx-auto" elevation="2" height="500" width="700">
+          <v-row no-gutters class="pb-0 mt-0 " style="height: 100%;">
+            <v-col class="pt-0  flex-grow-0">
+              <v-navigation-drawer class="grey lighten-3" left mini-variant permanent>
+                <v-list-item class="px-2">
+
+                  <!-- 个人信息详细 -->
+                  <v-menu :close-on-content-click="false" :nudge-width="200" offset-x>
+                    <template v-slot:activator="{ on, attrs }">
+                      <v-list-item-avatar v-bind="attrs" v-on="on">
+                        <v-img v-if="user" :src="user.head"></v-img>
+                      </v-list-item-avatar>
+                    </template>
+                    <v-card>
+                      <v-list>
+                        <v-list-item>
+                          <v-list-item-avatar>
+                            <img :src="user.head" :alt="user.name">
+                          </v-list-item-avatar>
+                          <v-list-item-content>
+                            <v-list-item-title>{{user.name}}</v-list-item-title>
+                            <v-list-item-subtitle>{{user.signDesc}}</v-list-item-subtitle>
+                          </v-list-item-content>
+                        </v-list-item>
+                        <!-- 个人标签 -->
+                        <v-list-item>
+                          <v-list-item-subtitle>
+                            <v-chip v-for="label in user.labels" small class="ma-2">
+                              {{label}}
+                            </v-chip></v-list-item-subtitle>
+                        </v-list-item>
+                      </v-list>
+                    </v-card>
+                  </v-menu>
+                  <v-list-item-title>{{user.name}}</v-list-item-title>
+                </v-list-item>
+
+                <v-divider></v-divider>
+
+                <v-list dense flat>
+                  <v-list-item-group :value="0" color="green darken-1">
+                    <v-list-item link href="index.html">
+                      <v-list-item-icon>
+                        <v-icon>mdi-chat</v-icon>
+                      </v-list-item-icon>
+
+                      <v-list-item-content>
+                        <v-list-item-title>聊天</v-list-item-title>
+                      </v-list-item-content>
+                    </v-list-item>
+
+                    <v-list-item link href="friend.html">
+                      <v-list-item-icon>
+                        <v-icon>mdi-account</v-icon>
+                      </v-list-item-icon>
+                      <v-list-item-content>
+                        <v-list-item-title>联系人</v-list-item-title>
+                      </v-list-item-content>
+                    </v-list-item>
+                    <v-spacer></v-spacer>
+                  </v-list-item-group>
+
+                  <v-list-item>
+                    <v-list-item-icon>
+                      <v-menu offset-y>
+                        <template v-slot:activator="{ on, attrs }">
+                          <v-icon color="grey darken-2" dark v-bind="attrs" v-on="on">
+                            mdi-menu
+                          </v-icon>
+                        </template>
+                        <v-list>
+                          <v-list-item link disabled>
+                            <v-list-item-title @click="doEdit">修改资料</v-list-item-title>
+                          </v-list-item>
+                          <v-list-item @click="logout">
+                            <v-list-item-title>退出</v-list-item-title>
+                          </v-list-item>
+                        </v-list>
+                      </v-menu>
+                    </v-list-item-icon>
+                    <v-list-item-content>
+                      <v-list-item-title>
+                        设置
+                      </v-list-item-title>
+                    </v-list-item-content>
+                  </v-list-item>
+                </v-list>
+              </v-navigation-drawer>
+            </v-col>
+            <v-col class="grey lighten-4 flex-grow-0 px-0  ">
+
+              <v-text-field outline>
+                <v-icon slot="prepend-inner">
+                  mdi-magnify
+                </v-icon>
+              </v-text-field>
+
+              <v-list color="grey lighten-4" class="overflow-y-auto" max-height="380" width="200">
+                <v-list-item-group mandatory v-model="activeFriend">
+                  <v-list-item class="px-2" v-for="item in chats" :key="item.friendId" :value="item">
+                    <v-list-item-avatar class="mr-2">
+                      <v-img :src="item.friendHead"></v-img>
+                    </v-list-item-avatar>
+                    <v-list-item-content>
+                      <v-list-item-title>
+                        {{item.friendName}}
+                      </v-list-item-title>
+                      <v-list-item-subtitle>
+                        {{item.lastMsg}}
+                        </v-list-itemsubtitle>
+                    </v-list-item-content>
+                    <v-list-item-action-text class="mb-4 text-caption">
+                      {{timeFormat(item.lastTime)}}
+                    </v-list-item-action-text>
+                  </v-list-item>
+                </v-list-item-group>
+              </v-list>
+            </v-col>
+            <v-col class="pa-0 flex-grow-1">
+              <v-card v-if="!activeFriend" class="d-flex align-center " disabled tile elevation="0" height="100%">
+                <v-card-title class="ma-auto">
+                  <v-icon large>mdi-wechat</v-icon>
+                </v-card-title>
+              </v-card>
+              <v-card color="grey lighten-3" v-else tile elevation="0" height="100%">
+                <v-toolbar class="mt-0" flat dense>
+                  <v-toolbar-title>{{activeFriend.friendName}}</v-toolbar-title>
+                  <v-spacer></v-spacer>
+                  <v-menu :close-on-content-click="false" :nudge-width="200" offset-y>
+                    <template v-slot:activator="{ on, attrs }">
+                      <v-btn icon v-bind="attrs" v-on="on">
+                        <v-icon>mdi-menu</v-icon>
+                      </v-btn>
+                    </template>
+                    <v-card>
+                      <v-list>
+                        <v-list-item>
+                          <v-list-item-avatar>
+                            <img :src="activeFriend.friendHead" :alt="activeFriend.friendName">
+                          </v-list-item-avatar>
+                          <v-list-item-content>
+                            <v-list-item-title>{{activeFriend.friendName}}</v-list-item-title>
+                            <v-list-item-subtitle>{{friendDetail.signDesc}}</v-list-item-subtitle>
+                          </v-list-item-content>
+                        </v-list-item>
+                        <!-- 个人标签 -->
+                        <v-list-item>
+                          <v-list-item-subtitle>
+                            <v-chip v-for="label in friendDetail.labels" small class="ma-2">
+                              {{label}}
+                            </v-chip></v-list-item-subtitle>
+                        </v-list-item>
+                      </v-list>
+                    </v-card>
+                  </v-menu>
+                </v-toolbar>
+                <!-- 消息列表 -->
+                <v-list ref="msgList" color="grey lighten-3" class="overflow-y-auto pa-1" height="310" max-height="310">
+                  <div v-for="item in activeFriendMsgs" :key="item">
+                    <!-- 发送给我的 -->
+                    <v-list-item v-if="item.toId==user.id">
+                      <v-list-item-avatar class="mr-2">
+                        <v-img :src="activeFriend.friendHead"></v-img>
+                      </v-list-item-avatar>
+                      <v-alert class="mb-0 pa-1 record text-body-2" dense color="white" v-html="item.message"></v-alert>
+                    </v-list-item>
+                    <!-- 我发送的  -->
+                    <v-list-item v-else class="d-flex justify-end">
+                      <v-alert class="mb-0 pa-1 record text-body-2" dense color="green lighten-2"
+                        v-html="item.message.replaceAll('\n','<br>')"></v-alert>
+                      <v-list-item-avatar class="ml-2">
+                        <v-img :src="user.head"></v-img>
+                      </v-list-item-avatar>
+                    </v-list-item>
+                  </div>
+                </v-list>
+                <v-divider></v-divider>
+                <!-- 工具栏 -->
+                <v-toolbar color="grey lighten-3" height="35" flat>
+
+                  <v-menu :nudge-width="300" top offset-y>
+                    <template v-slot:activator="{ on, attrs }">
+                      <v-btn small icon v-bind="attrs" v-on="on">
+                        <v-icon color="grey darken-1">mdi-emoticon-happy-outline</v-icon>
+                      </v-btn>
+                    </template>
+                    <v-sheet width="350" height="200" class="overflow-y-auto ma-0 pa-2">
+                      <v-row dense>
+                        <v-col v-for="item in 84" class="emoji item" @click="addEmoji(item)">
+                          <v-img width="20" :src="`http://cdn.coderead.cn/emoji/${item}.png`"></v-img>
+                        </v-col>
+                      </v-row>
+                    </v-sheet>
+                  </v-menu>
+
+
+
+                  <v-btn small icon disabled>
+                    <v-icon color="grey darken-1">mdi-folder-arrow-up-outline</v-icon>
+                  </v-btn>
+                  <v-btn small icon disabled>
+                    <v-icon color="grey darken-1">mdi-content-cut</v-icon>
+                  </v-btn>
+                  <v-btn small icon disabled>
+                    <v-icon color="grey darken-1">mdi-chat-processing-outline</v-icon>
+                  </v-btn>
+
+                  <v-spacer></v-spacer>
+                  <v-btn small icon disabled>
+                    <v-icon color="grey darken-1">mdi-microphone-message</v-icon>
+                  </v-btn>
+
+                </v-toolbar>
+                <!-- @keydown.enter.prevent.stop -->
+                <pre @keydown.enter.prevent.stop="doSendMessage" id="editMsg" ref="editMsg" autofocus
+                  contenteditable="true" class="pa-1 overflow-y-auto" style="height:100px"></pre>
+                  <!-- 发送提示 -->
+                <!-- <label class="text-caption text--secondary" style="position: absolute;bottom: 3px;right: 2px;">请输入Ctr/Cmd+Enter发送消息</label> -->
+              </v-card>
+            </v-col>
+          </v-row>
+
+        </v-sheet>
+      </v-main>
+
+    </v-app>
+
+  </div>
+</body>
+<script>
+  new Vue({
+    el: "#app",
+    vuetify: new Vuetify(),
+    methods: {},
+    data: {
+      activeFriend: null,
+      friendDetail: {},
+      activeFriendMsgs: [],// 聊天记录
+      visible: true,
+      name: "小强12",
+      user: null,
+      drawer: true,
+      chats: [
+
+      ],
+
+      mini: true,
+    },
+
+    methods: {
+      timeFormat(time) {
+        return Luban.dateFormat(time, Luban.isToday(time) ? "HH:mm" : "yyyy/MM/dd");
+      },
+      async loadUser() {
+        let user = await Luban.invoke("org.wechat.service.UserService", "getUserInfo");
+        if (user) {
+          this.user = user;
+          // 注册消息回调
+          let userId = this.user.id;
+          let callback = this.receiveMsg;
+          Luban.invoke("org.wechat.service.MessageService", "registMessageCall", {
+            userId, callback
+          });
+          // 加载聊天列表
+          this.loadChats();
+        } else {
+          window.location.href = "/login.html";
+        }
+      },
+      async logout() {
+        await Luban.invoke("org.wechat.service.UserService", "logout");
+        window.location.href = "/login.html";// 退回登录页
+      },
+      addEmoji(index) {
+        var img = document.createElement("img");
+        img.src = `http://cdn.coderead.cn/emoji/${index}.png`;
+        img.width = "25";
+        img.className = "emoji";
+        this.$refs.editMsg.appendChild(img);
+        this.$refs.editMsg.focus();
+      },
+      doEdit() {// 修改资料
+
+      },
+      async loadChats() {
+        // 加载聊天列表
+        let chats = await Luban.invoke("org.wechat.service.FriendService", "myChats");
+        // 激活聊天项
+        let friendId = new URLSearchParams(window.location.search).get("friendId");
+        if (friendId) {
+          let friend = this.chats.find(c => c.friendId == friendId);
+          this.activeFriend = friend || await Luban.invoke("org.wechat.service.FriendService", "newChat", { friendId }).then(f => {
+            chats.push(f);
+            return f;
+          });
+        } else if (this.chats.length > 0) {
+          this.activeFriend = this.chats[0];
+        }
+        this.chats = chats;
+      },
+      async doSendMessage(e) {// 发送消息
+        // if (!(e.metaKey || e.ctrlKey)) {
+        //   // 添加换行符
+        //   return;
+        // }
+        // let text = this.$refs.editMsg.textContent;
+        // TODO // 找到所有图片 然后单独发送
+        // document.querySelectorAll("#editMsg img:not(.emoji)").forEach(n=>n.remove())
+        let text = this.$refs.editMsg.innerHTML;
+
+        let toId = this.activeFriend.friendId;
+        let message = text;
+        Luban.invoke("org.wechat.service.MessageService", "sendPrivateMsg", {
+          toId, message
+        }).then(m => {
+          this.activeFriendMsgs.push(m);// 增加新消息
+          // 滚动到最底部
+          this.gotoBottom();
+        });
+        this.$refs.editMsg.innerHTML = "";// 清空消息
+      },
+      gotoBottom() {// 消息列表滚动至底部
+        this.$nextTick(function () {
+          let msgList = this.$refs.msgList.$el;
+          msgList.scrollTop = msgList.scrollHeight;
+        })
+      },
+      receiveMsg(msg) {// 接收新消息
+        // 直接显示到 聊天框
+        if (msg.fromId == this.activeFriend.friendId) {
+          this.activeFriendMsgs.push(msg);//添加到当前聊天框
+          // 滚动到最底部
+          this.gotoBottom();
+        } else {
+          let friend = this.chats.find(c => c.friendId == msg.fromId);// 信息提示
+          if (friend) {
+            friend.unreadCount += 1;
+            friend.lastMsg = msg.message;
+            friend.lastTime = msg.createTime;
+          } else {
+            //TODO 加载新好友
+          }
+        }
+      }
+    },
+    watch: {
+      async activeFriend() {
+        let friendId = this.activeFriend.friendId;
+        let maxCount = 100;
+        this.activeFriendMsgs = await Luban.invoke("org.wechat.service.MessageService", "lastHistory", {
+          friendId, maxCount
+        });
+        this.$refs.editMsg.focus();
+        this.gotoBottom();
+        // 加载好友详情
+        this.friendDetail = await Luban.invoke("org.wechat.service.FriendService", "getFriend", {
+          friendId
+        });
+      }
+    },
+    mounted() {
+      this.loadUser(); // 加载用户信息
+
+
+    },
+  });
+</script>
+<style>
+  .emoji.item:hover {
+    background-color: rgb(231, 228, 228);
+  }
+
+  #editMsg img {
+    max-width: 80px;
+  }
+
+  .record img {
+    max-width: 80px;
+  }
+</style>
+
+</html>
