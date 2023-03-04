@@ -13,7 +13,7 @@
             <version>1.0-SNAPSHOT</version>
         </dependency>
 <!--        在应用中集成neo4j-->
-        <!--<dependency>
+        <dependency>
             <groupId>org.neo4j</groupId>
             <artifactId>neo4j</artifactId>
             <version>3.3.5</version>
@@ -22,7 +22,7 @@
             <groupId>org.neo4j</groupId>
             <artifactId>neo4j-ogm-embedded-driver</artifactId>
             <version>3.2.23</version>
-        </dependency>-->
+        </dependency>
 <!--通过http 连接neo4j-->
         <dependency>
             <groupId>org.neo4j</groupId>
