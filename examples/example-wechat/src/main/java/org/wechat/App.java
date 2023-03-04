@@ -2,6 +2,7 @@ package org.wechat;
 
 import org.luban.http.HttpServer;
 
+import java.io.File;
 import java.io.IOException;
 
 

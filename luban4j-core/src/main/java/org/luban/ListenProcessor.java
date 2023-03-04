@@ -19,7 +19,6 @@ import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Names;
-import org.luban.monitor.PropertyListener;
 
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
