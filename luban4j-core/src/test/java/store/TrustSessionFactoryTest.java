@@ -20,9 +20,8 @@ import org.neo4j.ogm.typeconversion.ConversionCallback;
 
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
-import  static org.luban.common.CollectionUtil.MapOf;
-import  static org.luban.common.CollectionUtil.ListOf;
+
+import static org.luban.common.CollectionUtil.ListOf;
 /**
  * @author 鲁班大叔
  * @date 2023

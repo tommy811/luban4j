@@ -67,11 +67,11 @@ public class TrustSession {
                 Object id = readId(object);
                 String s = "MATCH p=(root:Root)-[r:SOURCE]->(u)" +
                         " where u.id=$id  delete root,r;";
-                neo4jSession.query(s, MapOf(id), false);// 删除关系
+                neo4jSession.query(s, MapOf("id",id), false);// 删除关系
                 // 是否存在 被引用关系?
                 Long i = neo4jSession.queryForObject(Long.class,
                         "match ()-[]->(n) where n.id=$id return count(n)",
-                        MapOf(id));
+                        MapOf("id",id));
                 if (i == 0) {//不被引用即删除
                     neo4jSession.delete(object);
                     logger.debug("删除根节点:" + id);

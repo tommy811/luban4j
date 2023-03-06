@@ -39,17 +39,8 @@ public class MessageService implements Db {
         // 1.添加消息记录
         PrivateMessage msg = new PrivateMessage(fromId, toId, message);
         privateMessages.add(msg);
-        // 2.更新聊天列表
-       /* Chat chat = chats.stream().filter(c -> c.getUserId().equals(fromId) && c.getFriendId().equals(toId))
-                .findFirst().orElse(new Chat());
-        chat.setLastMsg(message);
-        chat.setLastTime(new Date());
-        if (chat.getId() == null) {
-            chat.setUserId(fromId);
-            chat.setFriendId(toId);
-            chats.add(chat);
-        }*/
-        // 3.实时推送给前端
+
+        // 2.实时推送给前端
         if (callbacks.containsKey(toId)) {
             callbacks.get(toId).call(msg);
         }
