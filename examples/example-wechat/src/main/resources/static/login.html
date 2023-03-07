@@ -1,91 +1,70 @@
 <html>
-  <head>
-    <meta charset="UTF-8">
-    <link
-      rel="stylesheet"
-      href="https://unpkg.com/element-ui/lib/theme-chalk/index.css"
-    />
-    <script src="https://unpkg.com/vue@2/dist/vue.js"></script>
-    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
-    <script src="http://cdn.coderead.cn/luban.js"></script>
-  </head>
 
-  <body>
-    <div id="app">
-      <h2 style="text-align: center; padding: 20px">欢迎登录快聊3</h2>
-      <el-form
-        :model="user"
-        status-icon
-        ref="ruleForm"
-        label-width="100px"
-        class="loginForm"
-      >
-        <el-form-item label="用户名" prop="name">
-          <el-input
-            type="text"
-            v-model="user.name"
-            autocomplete="off"
-          ></el-input>
-        </el-form-item>
-        <el-form-item label="密码" prop="password">
-          <el-input
-            type="password"
-            v-model="user.password"
-            autocomplete="off"
-          ></el-input>
-        </el-form-item>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
 
-        <el-form-item>
-          <el-button style="width: 100%" @click="doLogin" type="primary"
-            >登录</el-button
-          >
-          还没有帐号？
-          <el-link href="/register.html" type="primary">点击注册</el-link>
-        </el-form-item>
-      </el-form>
-    </div>
-  </body>
-  <script>
-    new Vue({
-      el: "#app",
-      methods: {},
-      data: {
-        visible: true,
-        name: "小强12",
-        user: {
-          name: "",
-          password: "",
-        },
+  <script src="http://cdn.coderead.cn/vue@2.7.14/dist/vue.js"></script>
+  <script src="http://cdn.coderead.cn/vuetify@2.6.14/dist/vuetify.js"></script>
+  <script src="http://cdn.coderead.cn/luban.js"></script>
+
+  <link href="http://cdn.coderead.cn/vuetify@2.6.14/dist/vuetify.css" rel="stylesheet" />
+  <link href="http://cdn.coderead.cn/mdi@7.1.96/font/css/materialdesignicons.css" rel="stylesheet" />
+</head>
+
+
+<body>
+  <div id="app">
+    <v-app>
+      <v-main class="d-flex align-center">
+        <v-card flat class="mx-auto" width="400">
+          <v-card-title>欢迎登录畅聊</v-card-title>
+          <v-card-text>
+            <v-text-field label="用户名" :rules="[e=>!!e||'不能为空']" v-model="user.name"></v-text-field>
+            <v-text-field @keydown.enter="doLogin" label="密码" :rules="[e=>!!e||'不能为空']" type="password"
+              v-model="user.password"></v-text-field>
+            <v-alert v-if="errorMessage" dense outlined type="error" dismissible>{{errorMessage}}</v-alert>
+          </v-card-text>
+          <v-card-actions>
+            <v-btn color="primary" block @click="doLogin">登录</v-btn>
+          </v-card-actions>
+          <v-card-actions>
+            还没有帐号？
+            <v-btn color="success" text href="/register.html">点击注册</v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-main>
+    </v-app>
+  </div>
+</body>
+<script>
+  new Vue({
+    el: "#app",
+    vuetify: new Vuetify(),
+    methods: {},
+    data: {
+      visible: true,
+      name: "小强12",
+      errorMessage: null,
+      user: {
+        name: "",
+        password: "",
       },
-      methods: {
-        async doLogin() {
-          try {
-            await Luban.invoke("org.wechat.service.UserService", "login", this.user);
-            window.location.href = "/index.html";
-          } catch (e) {
-            this.$message.error("登录失败：" + e.message);
-          }
-        },
+    },
+    methods: {
+      async doLogin() {
+        try {
+          await Luban.invoke("org.wechat.service.UserService", "login", this.user);
+          window.location.href = "/index.html";
+        } catch (e) {
+          this.errorMessage = e.message;
+        }
       },
-    });
-  </script>
-  <style>
-    #app {
-      margin: auto;
-      height: 400px;
-      width: 500px;
-      margin-top: 50px;
-      background-color: white;
-      border-radius: 4px;
-      border: 1px solid #dddfe5;
-    }
-    .loginForm {
-      width: 400px;
-      margin: auto;
-      margin-top: 30px;
-    }
+    },
+  });
+</script>
+<style>
 
-    .button {
-    }
-  </style>
+</style>
+
 </html>
