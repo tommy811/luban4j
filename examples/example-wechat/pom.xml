@@ -6,13 +6,13 @@
     <groupId>coderead.cn</groupId>
     <artifactId>example-wechat</artifactId>
     <version>1.0-SNAPSHOT</version>
-    <repositories>
+    <!--<repositories>
         <repository>
             <id>oss</id>
             <url>https://s01.oss.sonatype.org/content/repositories/snapshots/</url>
             <snapshots/>
         </repository>
-    </repositories>
+    </repositories>-->
     <dependencies>
         <dependency>
             <groupId>cn.coderead</groupId>

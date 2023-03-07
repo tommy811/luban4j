@@ -150,7 +150,7 @@ public class TrustSessionFactory {
                 .filter(f -> Modifier.isFinal(f.getModifiers()))
                 .filter(f -> f.getType().isAssignableFrom(List.class))
                 .peek(f -> load(f, session))// 加载数据  //TODO 懒加载实现
-                .map(f -> proxyList(null, f))// 代理list
+                .map(f -> proxyList(null, f,true))// 代理list
                 .filter(Objects::nonNull)
                 .flatMap(Collection::stream)
                 .filter(o -> o instanceof PropertyListenerSuport)//监听list中元素
@@ -213,7 +213,7 @@ public class TrustSessionFactory {
 
 
     // 代理托管对象
-    private ListenList<?> proxyList(Object source, Field f) {
+    private ListenList<?> proxyList(final Object source, Field f,final boolean isRoot) {
         Assert.isTrue(f.getType().isAssignableFrom(List.class));
         Class trustClass = f.getDeclaringClass();
         f.setAccessible(true);
@@ -231,7 +231,11 @@ public class TrustSessionFactory {
             @Override
             public void addItem(Object item) {
                 if (item != null) {
-                    getStaging().rootAdd(path, item);
+                    if (isRoot) {
+                        getStaging().rootAdd(path, item);
+                    }else{
+                        getStaging().addChange(source);// 改变源
+                    }
 //                  listenObject(item);
                 }
             }
@@ -295,7 +299,7 @@ public class TrustSessionFactory {
                 .stream()
                 .filter(f -> f.isTypeOf(List.class) && !ListenList.class.isAssignableFrom(f.getField().getType()))
                 .map(FieldInfo::getField)
-                .map(f -> proxyList(obj, f))
+                .map(f -> proxyList(obj, f,false))
                 .filter(Objects::nonNull)
                 .flatMap(Collection::stream)
                 .filter(o -> o instanceof PropertyListenerSuport)

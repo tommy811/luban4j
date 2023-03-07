@@ -20,13 +20,13 @@
           <v-row no-gutters class="pb-0 mt-0 " style="height: 100%;">
             <v-col class="pt-0  flex-grow-0">
               <v-navigation-drawer class="grey lighten-3" left mini-variant permanent>
-                <v-list-item class="px-2">
+                <v-list-item v-if="user" class="px-2">
 
                   <!-- 个人信息详细 -->
                   <v-menu :close-on-content-click="false" :nudge-width="200" offset-x>
                     <template v-slot:activator="{ on, attrs }">
                       <v-list-item-avatar v-bind="attrs" v-on="on">
-                        <v-img v-if="user" :src="user.head"></v-img>
+                        <v-img :src="user.head"></v-img>
                       </v-list-item-avatar>
                     </template>
                     <v-card>
@@ -43,7 +43,7 @@
                         <!-- 个人标签 -->
                         <v-list-item>
                           <v-list-item-subtitle>
-                            <v-chip v-for="label in user.labels" small class="ma-2">
+                            <v-chip v-for="label in user.labels" :key="label" small class="ma-2">
                               {{label}}
                             </v-chip></v-list-item-subtitle>
                         </v-list-item>
@@ -107,21 +107,40 @@
             </v-col>
             <v-col class="grey lighten-4 flex-grow-0 px-0  ">
 
-              <v-text-field outline>
+              <v-text-field dense class="px-2" outline>
                 <v-icon slot="prepend-inner">
                   mdi-magnify
                 </v-icon>
+
+                <template v-slot:append-outer>
+                  <v-menu style="top: -12px" v-model="newGroupMenu" :close-on-content-click="false" offset-y>
+                    <template v-slot:activator="{ on, attrs }">
+                      <v-btn icon v-bind="attrs" v-on="on">
+                        <v-icon>
+                          mdi-plus
+                        </v-icon>
+                      </v-btn>
+                    </template>
+                    <v-card>
+                      <v-card-title>创建群聊</v-card-title>
+                      <v-card-text>
+                        <v-text-field v-model="newGroupName" @keydown.enter="createGroup" label="名称"
+                          autofocus></v-text-field>
+                      </v-card-text>
+                    </v-card>
+                  </v-menu>
+                </template>
               </v-text-field>
 
-              <v-list color="grey lighten-4" class="overflow-y-auto" max-height="380" width="200">
-                <v-list-item-group mandatory v-model="activeFriend">
+              <v-list class="px-2" color="grey lighten-4" class="overflow-y-auto" max-height="380" width="200">
+                <v-list-item-group mandatory v-model="activeChat">
                   <v-list-item class="px-2" v-for="item in chats" :key="item.friendId" :value="item">
                     <v-list-item-avatar class="mr-2">
-                      <v-img :src="item.friendHead"></v-img>
+                      <v-img :src="item.friendId?item.friendHead:item.groupHead"></v-img>
                     </v-list-item-avatar>
                     <v-list-item-content>
                       <v-list-item-title>
-                        {{item.friendName}}
+                        {{item.friendId?item.friendName:item.groupName}}
                       </v-list-item-title>
                       <v-list-item-subtitle>
                         {{item.lastMsg}}
@@ -135,16 +154,20 @@
               </v-list>
             </v-col>
             <v-col class="pa-0 flex-grow-1">
-              <v-card v-if="!activeFriend" class="d-flex align-center " disabled tile elevation="0" height="100%">
+              <v-card v-if="!activeChat" class="d-flex align-center " disabled tile elevation="0" height="100%">
                 <v-card-title class="ma-auto">
                   <v-icon large>mdi-wechat</v-icon>
                 </v-card-title>
               </v-card>
               <v-card color="grey lighten-3" v-else tile elevation="0" height="100%">
                 <v-toolbar class="mt-0" flat dense>
-                  <v-toolbar-title>{{activeFriend.friendName}}</v-toolbar-title>
+                  <v-toolbar-title v-if="activeChat.friendId">{{activeChat.friendName}}</v-toolbar-title>
+                  <v-toolbar-title v-else>{{groupDetail.groupName}}
+                    ({{groupDetail.members&&groupDetail.members.length}})
+                  </v-toolbar-title>
                   <v-spacer></v-spacer>
-                  <v-menu :close-on-content-click="false" :nudge-width="200" offset-y>
+                  <!-- 好友详情资料  Detail-->
+                  <v-menu v-if="friendDetail" :close-on-content-click="false" :nudge-width="200" offset-y>
                     <template v-slot:activator="{ on, attrs }">
                       <v-btn icon v-bind="attrs" v-on="on">
                         <v-icon>mdi-menu</v-icon>
@@ -154,42 +177,113 @@
                       <v-list>
                         <v-list-item>
                           <v-list-item-avatar>
-                            <img :src="activeFriend.friendHead" :alt="activeFriend.friendName">
+                            <img :src="activeChat.friendHead" :alt="activeChat.friendName">
                           </v-list-item-avatar>
                           <v-list-item-content>
-                            <v-list-item-title>{{activeFriend.friendName}}</v-list-item-title>
+                            <v-list-item-title>{{activeChat.friendName}}</v-list-item-title>
                             <v-list-item-subtitle>{{friendDetail.signDesc}}</v-list-item-subtitle>
                           </v-list-item-content>
                         </v-list-item>
                         <!-- 个人标签 -->
                         <v-list-item>
                           <v-list-item-subtitle>
-                            <v-chip v-for="label in friendDetail.labels" small class="ma-2">
+                            <v-chip v-for="label in friendDetail.labels" :key="label" small class="ma-2">
                               {{label}}
                             </v-chip></v-list-item-subtitle>
                         </v-list-item>
                       </v-list>
                     </v-card>
                   </v-menu>
+                  <!-- 群详情资料  Detail-->
+                  <v-menu v-else-if="groupDetail" :close-on-content-click="false" offset-y left>
+                    <template v-slot:activator="{ on, attrs }">
+                      <v-btn icon v-bind="attrs" v-on="on">
+                        <v-icon>mdi-menu</v-icon>
+                      </v-btn>
+                    </template>
+                    <v-card>
+                      <v-card-text>
+                        <v-text-field dense label="搜索群成员">
+                          <v-icon slot="prepend-inner">
+                            mdi-magnify
+                          </v-icon>
+                        </v-text-field>
+                        <v-row dense style="max-width: 250px; max-height:200px" class="overflow-y-auto">
+                          <v-col class="flex-grow-0 " v-for="(member) in groupDetail.members" :key="member.id">
+                            <v-avatar tile size="35">
+                              <img :src="member.head" :alt="member.name">
+                            </v-avatar>
+                            <div class="text-truncate text-caption " style="width:40px;max-width: 40px;">{{member.name}}
+                            </div>
+                          </v-col>
+
+                        </v-row>
+                      </v-card-text>
+                      <v-divider class="mx-4"></v-divider>
+                      <v-card-text>
+                        <v-text-field style="font-size: small;" v-model="newNickName" @blur="doEditGroupNick"  flat height="25" dense
+                          outline hide-details="auto">
+                          <template v-slot:label>
+                            <small>在本群中昵称</small>
+                          </template>
+                          <template v-slot:append>
+                            <v-icon color="grey " small>mdi-pencil</v-icon>
+                          </template>
+                        </v-text-field>
+                      </v-card-text>
+                      <v-card-actions>
+                        <v-spacer></v-spacer>
+                        <v-dialog max-width="290">
+                          <template v-slot:activator="{ on, attrs }">
+                            <v-btn v-bind="attrs" v-on="on" small text color="error">退出该群</v-btn>
+                          </template>
+                          <v-card>
+                            <v-card-title>
+                              确认退出该群聊？
+                            </v-card-title>
+                            <v-card-actions>
+                              <v-spacer></v-spacer>
+                              <v-btn color="error" @click="quitGroup(groupDetail.groupId)" text>
+                                确认
+                              </v-btn>
+                            </v-card-actions>
+                          </v-card>
+                        </v-dialog>
+
+
+                        <v-spacer></v-spacer>
+                      </v-card-actions>
+                    </v-card>
+                  </v-menu>
+
                 </v-toolbar>
                 <!-- 消息列表 -->
                 <v-list ref="msgList" color="grey lighten-3" class="overflow-y-auto pa-1" height="310" max-height="310">
-                  <div v-for="item in activeFriendMsgs" :key="item">
-                    <!-- 发送给我的 -->
-                    <v-list-item v-if="item.toId==user.id">
-                      <v-list-item-avatar class="mr-2">
-                        <v-img :src="activeFriend.friendHead"></v-img>
-                      </v-list-item-avatar>
-                      <v-alert class="mb-0 pa-1 record text-body-2" dense color="white" v-html="item.message"></v-alert>
-                    </v-list-item>
+                  <div v-for="item in activeChatMsgs" :key="item.id">
                     <!-- 我发送的  -->
-                    <v-list-item v-else class="d-flex justify-end">
+                    <v-list-item v-if="item.fromId==user.id" class="d-flex justify-end">
                       <v-alert class="mb-0 pa-1 record text-body-2" dense color="green lighten-2"
                         v-html="item.message.replaceAll('\n','<br>')"></v-alert>
                       <v-list-item-avatar class="ml-2">
                         <v-img :src="user.head"></v-img>
                       </v-list-item-avatar>
                     </v-list-item>
+                    <!-- 发送给我的 -->
+                    <v-list-item v-else two-line>
+                      <v-list-item-avatar class="mr-2 align-self-baseline">
+                        <v-img v-if="friendDetail" :src="friendDetail.head"></v-img>
+                        <v-img v-if="item.fromHead" :src="item.fromHead"></v-img>
+                      </v-list-item-avatar>
+                      <v-list-item-content>
+                        <v-list-item-subtitle class="text-caption" v-if="item.fromName"
+                          v-text="item.fromName"></v-list-item-subtitle>
+                        <div>
+                          <v-alert style="width: fit-content;" class="mb-0 pa-1 record text-body-2 flex-grow-0" dense
+                            color="white" v-html="item.message"></v-alert>
+                        </div>
+                      </v-list-item-content>
+                    </v-list-item>
+
                   </div>
                 </v-list>
                 <v-divider></v-divider>
@@ -204,7 +298,7 @@
                     </template>
                     <v-sheet width="350" height="200" class="overflow-y-auto ma-0 pa-2">
                       <v-row dense>
-                        <v-col v-for="item in 84" class="emoji item" @click="addEmoji(item)">
+                        <v-col v-for="item in 84" :key="item" class="emoji item" @click="addEmoji(item)">
                           <v-img width="20" :src="`http://cdn.coderead.cn/emoji/${item}.png`"></v-img>
                         </v-col>
                       </v-row>
@@ -232,7 +326,7 @@
                 <!-- @keydown.enter.prevent.stop -->
                 <pre @keydown.enter.prevent.stop="doSendMessage" id="editMsg" ref="editMsg" autofocus
                   contenteditable="true" class="pa-1 overflow-y-auto" style="height:100px"></pre>
-                  <!-- 发送提示 -->
+                <!-- 发送提示 -->
                 <!-- <label class="text-caption text--secondary" style="position: absolute;bottom: 3px;right: 2px;">请输入Ctr/Cmd+Enter发送消息</label> -->
               </v-card>
             </v-col>
@@ -251,9 +345,13 @@
     vuetify: new Vuetify(),
     methods: {},
     data: {
-      activeFriend: null,
+      newGroupName: null,
+      newGroupMenu: false,
+      activeChat: null,
       friendDetail: {},
-      activeFriendMsgs: [],// 聊天记录
+      groupDetail: {},
+      newNickName:null,
+      activeChatMsgs: [],// 当前激活的聊天记录
       visible: true,
       name: "小强12",
       user: null,
@@ -300,19 +398,33 @@
       doEdit() {// 修改资料
 
       },
+      getGroupMember(userId) {
+        if (this.groupDetail && this.groupDetail.members) {
+          return this.groupDetail.members.find(m => m.id == userId);
+        }
+        return null;
+      },
       async loadChats() {
         // 加载聊天列表
         let chats = await Luban.invoke("org.wechat.service.FriendService", "myChats");
         // 激活聊天项
-        let friendId = new URLSearchParams(window.location.search).get("friendId");
+        let param = new URLSearchParams(window.location.search)
+        let friendId = param.get("friendId");
+        let groupId = param.get("groupId");
         if (friendId) {
-          let friend = this.chats.find(c => c.friendId == friendId);
-          this.activeFriend = friend || await Luban.invoke("org.wechat.service.FriendService", "newChat", { friendId }).then(f => {
+          let friend = chats.find(c => c.friendId == friendId);
+          this.activeChat = friend || await Luban.invoke("org.wechat.service.FriendService", "newChat", { friendId }).then(f => {
+            chats.push(f);
+            return f;
+          });
+        } else if (groupId) { // 激活群聊
+          let group = chats.find(c => c.groupId == groupId);
+          this.activeChat = group || await Luban.invoke("org.wechat.service.FriendService", "newGroupChat", { groupId }).then(f => {
             chats.push(f);
             return f;
           });
         } else if (this.chats.length > 0) {
-          this.activeFriend = this.chats[0];
+          this.activeChat = this.chats[0];
         }
         this.chats = chats;
       },
@@ -324,18 +436,29 @@
         // let text = this.$refs.editMsg.textContent;
         // TODO // 找到所有图片 然后单独发送
         // document.querySelectorAll("#editMsg img:not(.emoji)").forEach(n=>n.remove())
-        let text = this.$refs.editMsg.innerHTML;
-
-        let toId = this.activeFriend.friendId;
-        let message = text;
-        Luban.invoke("org.wechat.service.MessageService", "sendPrivateMsg", {
-          toId, message
-        }).then(m => {
-          this.activeFriendMsgs.push(m);// 增加新消息
-          // 滚动到最底部
-          this.gotoBottom();
-        });
-        this.$refs.editMsg.innerHTML = "";// 清空消息
+        let message = this.$refs.editMsg.innerHTML;
+        let friendId = this.activeChat.friendId;
+        let groupId = this.activeChat.groupId;
+        if (friendId) {// 私发消息
+          let toId = friendId;
+          Luban.invoke("org.wechat.service.MessageService", "sendPrivateMsg", {
+            toId, message
+          }).then(m => {
+            this.activeChatMsgs.push(m);// 增加新消息
+            // 滚动到最底部
+            this.gotoBottom();
+          });
+          this.$refs.editMsg.innerHTML = "";// 清空消息
+        } else if (groupId) {// 群发消息
+          Luban.invoke("org.wechat.service.MessageService", "sendGroupMsg", {
+            groupId, message
+          }).then(m => {
+            this.activeChatMsgs.push(m);// 增加新消息
+            // 滚动到最底部
+            this.gotoBottom();
+          });
+          this.$refs.editMsg.innerHTML = "";// 清空消息
+        }
       },
       gotoBottom() {// 消息列表滚动至底部
         this.$nextTick(function () {
@@ -343,14 +466,19 @@
           msgList.scrollTop = msgList.scrollHeight;
         })
       },
-      receiveMsg(msg) {// 接收新消息
-        // 直接显示到 聊天框
-        if (msg.fromId == this.activeFriend.friendId) {
-          this.activeFriendMsgs.push(msg);//添加到当前聊天框
-          // 滚动到最底部
-          this.gotoBottom();
+      receiveMsg(msg, type) {// 接收新消息
+        if ("group" == type) {
+
         } else {
-          let friend = this.chats.find(c => c.friendId == msg.fromId);// 信息提示
+          receivePrivateMsg(msg);
+        }
+      },
+      receivePrivateMsg(msg) {// 接收私发消息
+        if (msg.fromId == this.activeChat.friendId) {  // 直接显示到 聊天框
+          this.activeChatMsgs.push(msg);//添加到当前聊天框
+          this.gotoBottom();// 滚动到最底部
+        } else {
+          let friend = this.chats.find(c => c.friendId == msg.fromId);//TODO 信息提示
           if (friend) {
             friend.unreadCount += 1;
             friend.lastMsg = msg.message;
@@ -359,27 +487,70 @@
             //TODO 加载新好友
           }
         }
+      },
+      receiveGroupMsg(msg) {// 接收群发消息
+
+      },
+      async createGroup() { // 创建群聊
+        if (!this.newGroupName) {// 群名为空
+          return;
+        }
+        let name = this.newGroupName;
+        let group = { name: this.newGroupName, groupHead: "http://cdn.coderead.cn/heads/group.png" };
+        let newGroup = await Luban.invoke("org.wechat.service.GroupService", "createGroup", { group });
+        console.log("添加成功");
+        // 关闭group 弹窗
+        this.newGroupMenu = false;
+      },
+      quitGroup(groupId) {// 退出群聊
+        Luban.invoke("org.wechat.service.GroupService", "quit", { groupId }).then(r => {
+          window.location.href = "/index.html"; // 刷新
+        });
+      },
+      doEditGroupNick() {
+        if (this.newNickName && this.groupDetail) {
+          let groupId = this.groupDetail.groupId;
+          let newNickName = this.newNickName;
+          Luban.invoke("org.wechat.service.GroupService", "editNickName", { groupId, newNickName }).then(r => {
+            console.log("昵称修改成功");
+          });
+        }
       }
     },
     watch: {
-      async activeFriend() {
-        let friendId = this.activeFriend.friendId;
+      async activeChat() {
         let maxCount = 100;
-        this.activeFriendMsgs = await Luban.invoke("org.wechat.service.MessageService", "lastHistory", {
-          friendId, maxCount
-        });
+        let friendId = this.activeChat.friendId;
+        let groupId = this.activeChat.groupId;
+        if (friendId) {
+          this.activeChatMsgs = await Luban.invoke("org.wechat.service.MessageService", "lastHistory", {
+            friendId, maxCount
+          });
+          // 加载好友详情
+          this.friendDetail = await Luban.invoke("org.wechat.service.FriendService", "getFriend", {
+            friendId
+          });
+          this.groupDetail = null;
+        } else if (groupId) {
+          // 加载群消息
+          this.activeChatMsgs = await Luban.invoke("org.wechat.service.MessageService", "lastHistoryByGroup", {
+            groupId, maxCount
+          });
+
+          this.groupDetail = { ...this.activeChat }
+          // 获取群成员
+          this.groupDetail.members = await Luban.invoke("org.wechat.service.FriendService", "getGroupMembers", {
+            groupId
+          });
+          this.friendDetail = null;
+        }
+
         this.$refs.editMsg.focus();
         this.gotoBottom();
-        // 加载好友详情
-        this.friendDetail = await Luban.invoke("org.wechat.service.FriendService", "getFriend", {
-          friendId
-        });
       }
     },
     mounted() {
       this.loadUser(); // 加载用户信息
-
-
     },
   });
 </script>
@@ -393,7 +564,7 @@
   }
 
   .record img {
-    max-width: 80px;
+    max-width: 200px;
   }
 </style>
 

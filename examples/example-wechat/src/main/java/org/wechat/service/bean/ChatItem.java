@@ -11,13 +11,19 @@ import java.util.Date;
  * @author 鲁班大叔
  * @date 2023
  */
-public class ChatFriend {
+public class ChatItem {
     public String userId;
+
     public String friendId;
-    public String lastMsg;
-    public Date lastTime;
     public String friendName;
     public String friendHead;//  头像
-    public int unreadCount;// 未读消息数量
     public boolean online;// 该好是否在线
+
+    public String groupId;
+    public String groupName;
+    public String groupHead;// 群聊头像
+    public int unreadCount;// 未读消息数量
+
+    public String lastMsg;
+    public Date lastTime;
 }

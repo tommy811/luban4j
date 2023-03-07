@@ -91,29 +91,54 @@
               </v-text-field>
 
               <v-list color="grey lighten-4" class="overflow-y-auto" max-height="380" width="200">
-                <v-list-item-group v-model="activeFriend">
-                  <v-list-item v-for="item in friends" :key="item.name" :value="item">
-                    <v-list-item-avatar>
-                      <v-img :src="item.head"></v-img>
-                    </v-list-item-avatar>
-                    <v-list-item-content>
-                      <v-list-item-title v-text="item.name"></v-list-item-title>
-                      <v-list-item-subtitle>
-                        <v-icon small v-if="item.sex=='男'">mdi-account-tie</v-icon>
-                        <v-icon small color="pink lighten-2" v-else>mdi-account-tie-woman</v-icon>
-                        </v-list-itemsubtitle>
-                    </v-list-item-content>
-                  </v-list-item>
-                </v-list-item-group>
+                <v-list-group :value="true" no-action>
+                  <template v-slot:activator>
+                    <v-list-item-subtitle>群聊</v-list-item-subtitle>
+
+                  </template>
+                  <!-- 加载群聊列表 -->
+                  <v-list-item-group v-model="activeGroup">
+                    <v-list-item v-for="item in groups" :key="item.name" :value="item">
+                      <v-list-item-avatar>
+                        <v-img :src="item.groupHead"></v-img>
+                      </v-list-item-avatar>
+                      <v-list-item-content>
+                        <v-list-item-title v-text="item.name"></v-list-item-title>
+                      </v-list-item-content>
+                      <v-list-item-action-text v-if="!isJoin(item.id)">
+                        <v-btn  color="success
+                        " @click.prevent.stop="doAddGroup(item.id)" small icon>
+                          <v-icon>mdi-plus</v-icon>
+                        </v-btn>
+                      </v-list-item-action-text>
+                    </v-list-item>
+                  </v-list-item-group>
+
+                </v-list-group>
+                <v-list-group :value="true" no-action>
+                  <template v-slot:activator>
+                    <v-list-item-subtitle>交友列表</v-list-item-subtitle>
+                  </template>
+                  <v-list-item-group v-model="activeFriend">
+                    <v-list-item v-for="item in friends" :key="item.name" :value="item">
+                      <v-list-item-avatar>
+                        <v-img :src="item.head"></v-img>
+                      </v-list-item-avatar>
+                      <v-list-item-content>
+                        <v-list-item-title v-text="item.name"></v-list-item-title>
+                        <v-list-item-subtitle>
+                          <v-icon small v-if="item.sex=='男'">mdi-account-tie</v-icon>
+                          <v-icon small color="pink lighten-2" v-else>mdi-account-tie-woman</v-icon>
+                          </v-list-itemsubtitle>
+                      </v-list-item-content>
+                    </v-list-item>
+                  </v-list-item-group>
+                </v-list-group>
+
               </v-list>
             </v-col>
             <v-col class="pa-0 flex-grow-1">
-              <v-card v-if="!activeFriend" class="d-flex align-center" disabled tile elevation="0" height="100%">
-                <v-card-title class="ma-auto">
-                  <v-icon large>mdi-wechat</v-icon>
-                </v-card-title>
-              </v-card>
-              <v-card v-else tile elevation="0" height="100%">
+              <v-card v-if="activeFriend" v-else tile elevation="0" height="100%">
                 <v-list-item three-line>
                   <v-list-item-content>
                     <div class="text-overline mb-4">
@@ -133,8 +158,7 @@
                     <v-img :src="activeFriend.head">
                   </v-list-item-avatar>
                 </v-list-item>
-                <v-card-text>
-                </v-card-text>
+
                 <v-card-actions class="pt-0">
                   <v-spacer></v-spacer>
                   <v-btn :href="`index.html?friendId=${activeFriend.id}`" class="pa-5 ma-10" large color="success">
@@ -143,6 +167,31 @@
                   <v-spacer></v-spacer>
                 </v-card-actions>
               </v-card>
+              <v-card v-else-if="activeGroup" tile elevation="0" height="100%">
+                <v-list-item three-line>
+                  <v-list-item-avatar tile size="80" color="grey">
+                    <v-img :src="activeGroup.groupHead">
+                  </v-list-item-avatar>
+                  <v-list-item-content>
+                    <v-list-item-title class="text-h5 mb-1">
+                      {{activeGroup.name}}
+                    </v-list-item-title>
+                  </v-list-item-content>
+                </v-list-item>
+                <v-card-actions class="pt-0">
+                  <v-spacer></v-spacer>
+                  <v-btn :href="`index.html?groupId=${activeGroup.id}`" class="pa-5 ma-10" large color="success">
+                    进入群聊
+                  </v-btn>
+                  <v-spacer></v-spacer>
+                </v-card-actions>
+              </v-card>
+              <v-card v-else class="d-flex align-center" disabled tile elevation="0" height="100%">
+                <v-card-title class="ma-auto">
+                  <v-icon large>mdi-wechat</v-icon>
+                </v-card-title>
+              </v-card>
+
             </v-col>
           </v-row>
         </v-sheet>
@@ -158,24 +207,18 @@
     methods: {},
     data: {
       activeFriend: null,
+      activeGroup: null,
       visible: true,
       name: "小强12",
       user: null,
       drawer: true,
       friends: [
-        { name: 'Jason Oner', sex: "男", head: 'https://cdn.vuetifyjs.com/images/lists/1.jpg' },
-        { name: 'Travis Howard', sex: "男", head: 'https://cdn.vuetifyjs.com/images/lists/2.jpg' },
-        { name: 'Ali Connors', sex: "女", head: 'https://cdn.vuetifyjs.com/images/lists/3.jpg' },
-        { name: 'Cindy Baker', sex: "女", head: 'https://cdn.vuetifyjs.com/images/lists/4.jpg' },
-        { name: 'Jason Oner1', sex: "男", head: 'https://cdn.vuetifyjs.com/images/lists/1.jpg' },
-        { name: 'Travis Howard2', sex: "男", head: 'https://cdn.vuetifyjs.com/images/lists/2.jpg' },
-        { name: 'Ali Connors3', sex: "女", head: 'https://cdn.vuetifyjs.com/images/lists/3.jpg' },
-        { name: 'Cindy Baker4', sex: "女", head: 'https://cdn.vuetifyjs.com/images/lists/4.jpg' },
-        { name: 'Travis Howard5', sex: "男", head: 'https://cdn.vuetifyjs.com/images/lists/2.jpg' },
-        { name: 'Ali Connors6', sex: "女", head: 'https://cdn.vuetifyjs.com/images/lists/3.jpg' },
-        { name: 'Cindy Baker7', sex: "女", head: 'https://cdn.vuetifyjs.com/images/lists/4.jpg' },
       ],
-
+      groups: [
+        { name: "我的群", groupHead: "http://cdn.coderead.cn/heads/group.png" },
+        { name: "我的群2", groupHead: "http://cdn.coderead.cn/heads/group.png" }
+      ],
+      myGroups:[],
       mini: true,
     },
 
@@ -184,6 +227,8 @@
         let user = await Luban.invoke("org.wechat.service.UserService", "getUserInfo");
         if (user) {
           this.user = user;
+          this.loadFriend();// 加载所有好友
+          this.loadGroups();// 加载所有群
         } else {
           window.location.href = "/login.html";
         }
@@ -198,10 +243,42 @@
           this.activeFriend = this.friends[0];
         }
       },
+      loadGroups() {// 加载所有群聊
+        Luban.invoke("org.wechat.service.GroupService", "allGroups").then(r => {
+          this.groups = r;
+        });
+        Luban.invoke("org.wechat.service.GroupService", "myGroups").then(r => {
+          this.myGroups = r;
+        });
+        
+      },
+      doAddGroup(groupId) {// 加入群聊
+        Luban.invoke("org.wechat.service.GroupService", "join", { groupId }).then(g=>{
+            // 加入成功,进入群聊
+          window.location.href=  `index.html?groupId=${groupId}`
+        });
+
+      },
+      isJoin(groupId){
+        return this.myGroups.find(g=>g.id==groupId) && true;
+      },
+      doEdit(){
+
+      }
+    },
+    watch: {
+      activeFriend(newVal) {
+        if (newVal)
+          this.activeGroup = null;
+      },
+      activeGroup(newVal) {
+        if (newVal)
+          this.activeFriend = null;
+      }
     },
     mounted() {
       this.loadUser(); // 加载用户信息
-      this.loadFriend();// 加载所有朋友
+
     },
   });
 </script>

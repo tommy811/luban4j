@@ -14,7 +14,6 @@ public class Friend {
     public String sex;// 性别
     public String labels[];//标签
     public String signDesc;// 个性签名
-    public String password;
     public boolean online;// 是否在线
 
 }
